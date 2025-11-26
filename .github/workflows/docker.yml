@@ -1,0 +1,92 @@
+name: Docker Multi-Arch Build (Matrix + Manifest)
+
+on:
+  push:
+    branches:
+      - 'release'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: amd64
+            runner: ubuntu-latest
+            arch: linux/amd64
+            dockerfile: Dockerfile
+          - name: arm64 
+            runner: ubuntu-24.04-arm 
+            arch: linux/arm64
+            dockerfile: Dockerfile.arm64
+            
+    runs-on: ${{ matrix.platform.runner }} 
+    permissions:
+      packages: write
+      contents: read
+      
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: 🔑 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: 📅 Set temporary tags
+        id: temp_tag
+        run: |
+          IMAGE_REPO=ghcr.io/${{ github.repository }}
+          SHA_TAG=${IMAGE_REPO}:${{ github.sha }}-${{ matrix.platform.name }}
+          LATEST_TAG=${IMAGE_REPO}:latest-${{ matrix.platform.name }}
+          echo "IMAGE_REPO=${IMAGE_REPO}" >> $GITHUB_OUTPUT
+          echo "SHA_TAG=${SHA_TAG}" >> $GITHUB_OUTPUT
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_OUTPUT
+      
+      - name: 📦 Build and push architecture-specific image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: ${{ matrix.platform.dockerfile }}
+          tags: ${{ steps.temp_tag.outputs.SHA_TAG }}, ${{ steps.temp_tag.outputs.LATEST_TAG }} 
+          platforms: ${{ matrix.platform.arch }}
+
+  create-manifest:
+    runs-on: ubuntu-latest
+    needs: build 
+    permissions:
+      packages: write
+      contents: read
+      
+    steps:
+      - name: 🛠️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: 🔗 Create and Push Manifest List
+        run: |
+          IMAGE_REPO=ghcr.io/${{ github.repository }}
+          FINAL_SHA_TAG=${IMAGE_REPO}:${{ github.sha }}
+          FINAL_LATEST_TAG=${IMAGE_REPO}:latest
+          
+          docker buildx imagetools create --tag ${FINAL_SHA_TAG} \
+            ${IMAGE_REPO}:${{ github.sha }}-amd64 \
+            ${IMAGE_REPO}:${{ github.sha }}-arm64
+          
+          docker buildx imagetools create --tag ${FINAL_LATEST_TAG} \
+            ${IMAGE_REPO}:latest-amd64 \
+            ${IMAGE_REPO}:latest-arm64
