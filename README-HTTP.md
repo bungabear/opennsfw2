@@ -7,6 +7,9 @@ A FastAPI-based HTTP service for NSFW content detection using the OpenNSFW2 libr
 ### Using Docker (Recommended)
 
 ```bash
+# Use prebuilt image 
+docker run --rm -p 8000:8000 ghcr.io/bungabear/opennsfw2
+
 # Build and run.
 docker build -t opennsfw2-api .
 docker run -p 8000:8000 opennsfw2-api

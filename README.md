@@ -51,6 +51,13 @@ cd opennsfw2
 python3 -m pip install .
 ```
 
+You could run with docker http server.   
+It supports **amd64** and **arm64**
+```shell
+ docker run -p 8000:8000 ghcr.io/bungabear/opennsfw2
+```
+
+
 # Usage
 
 Quick examples for getting started are given below.
