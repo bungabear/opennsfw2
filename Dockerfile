@@ -1,5 +1,3 @@
-ARG REQUIREMENTS_FILE=requirements-api.txt
-
 FROM python:3.12-slim-bookworm
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
@@ -14,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+ARG REQUIREMENTS_FILE=requirements-api.txt
 COPY ${REQUIREMENTS_FILE} requirements-api.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-api.txt
