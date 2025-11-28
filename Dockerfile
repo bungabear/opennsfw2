@@ -1,3 +1,5 @@
+ARG REQUIREMENTS_FILE=requirements-api.txt
+
 FROM python:3.12-slim-bookworm
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
@@ -7,11 +9,12 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements-api.txt .
+COPY ${REQUIREMENTS_FILE} requirements-api.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-api.txt
 

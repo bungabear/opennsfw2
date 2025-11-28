@@ -15,11 +15,11 @@ jobs:
           - name: amd64
             runner: ubuntu-latest
             arch: linux/amd64
-            dockerfile: Dockerfile
+            build-args: REQUIREMENTS_FILE=requirements-api.txt
           - name: arm64 
             runner: ubuntu-24.04-arm 
             arch: linux/arm64
-            dockerfile: Dockerfile.arm64
+            build-args: REQUIREMENTS_FILE=requirements-api-arm64.txt
             
     runs-on: ${{ matrix.platform.runner }} 
     permissions:
@@ -58,6 +58,7 @@ jobs:
           file: ${{ matrix.platform.dockerfile }}
           tags: ${{ steps.temp_tag.outputs.SHA_TAG }}, ${{ steps.temp_tag.outputs.LATEST_TAG }} 
           platforms: ${{ matrix.platform.arch }}
+          build-args: ${{ matrix.platform.build-args }}
 
   create-manifest:
     runs-on: ubuntu-latest
