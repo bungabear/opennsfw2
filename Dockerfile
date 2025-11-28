@@ -14,8 +14,7 @@ WORKDIR /app
 
 ARG REQUIREMENTS_FILE=requirements-api.txt
 COPY ${REQUIREMENTS_FILE} requirements-api.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-api.txt
+RUN pip install --no-cache-dir -r requirements-api.txt
 
 # Copy the entire project.
 COPY . .

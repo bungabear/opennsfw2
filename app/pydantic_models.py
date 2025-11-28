@@ -107,3 +107,40 @@ class VideoResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str = Field(..., description="Error message")
+
+
+# New: Path-based request models
+class PathOptions(BaseModel):
+    # free-form dict of options; value parsing handled below
+    preprocessing: Preprocessing = Field(
+        default=Preprocessing.YAHOO,
+        description="Preprocessing method"
+    )
+    frame_interval: int = Field(
+        default=8,
+        ge=1,
+        description="Prediction will be done on every this number of frames"
+    )
+    aggregation_size: int = Field(
+        default=8,
+        ge=1,
+        description="Number of frames for aggregation"
+    )
+    aggregation: Aggregation = Field(
+        default=Aggregation.MEAN,
+        description="Aggregation method"
+    )
+
+class SinglePathRequest(BaseModel):
+    path: str
+    options: Optional[PathOptions] = None
+
+
+class MultiplePathsRequest(BaseModel):
+    paths: List[str]
+    options: Optional[PathOptions] = None
+
+
+class VideoPathRequest(BaseModel):
+    path: str
+    options: Optional[PathOptions] = None
